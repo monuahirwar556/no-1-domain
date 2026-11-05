@@ -1,0 +1,74 @@
+[
+  {
+    "rank": 1,
+    "domain": "cryptoindia.in",
+    "title": "CryptoIndia — Leading Web3 Portal",
+    "websiteUrl": "https://cryptoindia.in",
+    "category": "Finance & Banking",
+    "tier": 300,
+    "startingBid": 50,
+    "clicks": 342,
+    "description": "India's fastest cryptocurrency news, coin analysis and Web3 community directory.",
+    "status": "DEMO"
+  },
+  {
+    "rank": 2,
+    "domain": "bharatmart.com",
+    "title": "BharatMart — Pan-India Wholesale",
+    "websiteUrl": "https://bharatmart.com",
+    "category": "Ecommerce & Retail",
+    "tier": 250,
+    "startingBid": 50,
+    "clicks": 218,
+    "description": "Direct B2B wholesale marketplace connecting Indian artisans and regional retailers.",
+    "status": "DEMO"
+  },
+  {
+    "rank": 3,
+    "domain": "techstartup.in",
+    "title": "TechStartup — Ecosystem Radar",
+    "websiteUrl": "https://techstartup.in",
+    "category": "Tech & Software",
+    "tier": 200,
+    "startingBid": 50,
+    "clicks": 154,
+    "description": "Curated ecosystem tracking high-growth early-stage Indian SaaS and AI startups.",
+    "status": "DEMO"
+  },
+  {
+    "rank": 4,
+    "domain": "quickloans.co.in",
+    "title": "QuickLoans — Instant Credit Compare",
+    "websiteUrl": "https://quickloans.co.in",
+    "category": "Finance & Banking",
+    "tier": 150,
+    "startingBid": 50,
+    "clicks": 96,
+    "description": "Transparent personal and MSME loan comparison aggregator with zero hidden fees.",
+    "status": "DEMO"
+  },
+  {
+    "rank": 5,
+    "domain": "cloudhost.in",
+    "title": "CloudHost — Ultra-Fast Cloud VPS",
+    "websiteUrl": "https://cloudhost.in",
+    "category": "Tech & Software",
+    "tier": 100,
+    "startingBid": 50,
+    "clicks": 64,
+    "description": "High-speed Indian NVMe cloud server hosting and managed Linux infrastructure.",
+    "status": "DEMO"
+  },
+  {
+    "rank": 6,
+    "domain": "medicare24.in",
+    "title": "MediCare24 — Tele-Health & Pharmacy",
+    "websiteUrl": "https://medicare24.in",
+    "category": "Healthcare & Pharma",
+    "tier": 50,
+    "startingBid": 50,
+    "clicks": 38,
+    "description": "24/7 verified online medicine delivery and certified doctor tele-consultations.",
+    "status": "DEMO"
+  }
+]

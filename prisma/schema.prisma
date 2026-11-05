@@ -1,0 +1,146 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          String    @default("USER")
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bids          Bid[]
+  listings      Listing[] @relation("CreatedListings")
+  wonListings   Listing[] @relation("CurrentWinningListings")
+  payments      Payment[]
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Listing {
+  id              String        @id @default(cuid())
+  title           String
+  description     String
+  category        String
+  imageUrl        String?
+  videoUrl        String?
+  websiteUrl      String?
+  domain          String?
+  clicks          Int           @default(0)
+  startingBid     Int           @default(0)
+  currentBid      Int           @default(0)
+  currentBidderId String?
+  status          String        @default("ACTIVE")
+  endsAt          DateTime
+  createdById     String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  createdBy       User          @relation("CreatedListings", fields: [createdById], references: [id])
+  currentBidder   User?         @relation("CurrentWinningListings", fields: [currentBidderId], references: [id])
+  bids            Bid[]
+  visits          Visit[]
+}
+
+model Visit {
+  id        String   @id @default(cuid())
+  listingId String
+  ip        String?
+  userAgent String?
+  referer   String?
+  country   String?
+  city      String?
+  device    String?
+  browser   String?
+  createdAt DateTime @default(now())
+
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, createdAt])
+}
+
+model Bid {
+  id          String     @id @default(cuid())
+  amount      Int
+  status      String     @default("PENDING")
+  position    Int?
+  listingId   String
+  userId      String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  listing     Listing    @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment     Payment?
+
+  @@index([listingId, amount])
+  @@index([listingId, position])
+}
+
+model Payment {
+  id                String   @id @default(cuid())
+  razorpayOrderId   String   @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  amount            Int
+  currency          String   @default("INR")
+  status            String   @default("PENDING")
+  userId            String
+  bidId             String?  @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bid               Bid?     @relation(fields: [bidId], references: [id])
+}

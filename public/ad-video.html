@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NO. 1 DOMAIN — 30-Second Meta Ad Video Creator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #090a12;
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px;
+      overflow-x: hidden;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      max-width: 700px;
+    }
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #facc15, #f59e0b, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    p.sub {
+      color: #94a3b8;
+      font-size: 13px;
+    }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 1100px;
+    }
+    @media(min-width: 900px) {
+      .main-container {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+    }
+
+    /* Video Frame (Instagram Reels 9:16 Aspect Ratio) */
+    .video-wrapper {
+      position: relative;
+      width: 360px;
+      height: 640px;
+      background: #05060a;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 0 50px rgba(168, 85, 247, 0.25), 0 0 0 2px rgba(234, 179, 8, 0.4);
+      flex-shrink: 0;
+    }
+    canvas#adCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #090a13;
+    }
+
+    /* Controls Panel */
+    .controls-card {
+      background: #111322;
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 24px;
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .controls-card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #facc15;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    button.btn {
+      cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button.btn-primary {
+      background: linear-gradient(135deg, #eab308, #f59e0b);
+      color: #020617;
+      box-shadow: 0 4px 15px rgba(234, 179, 8, 0.35);
+    }
+    button.btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(234, 179, 8, 0.5);
+    }
+    button.btn-secondary {
+      background: #1e2139;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+    }
+    button.btn-secondary:hover {
+      background: #272b49;
+    }
+    button.btn-record {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+    button.btn-record.recording {
+      animation: pulseRecord 1.2s infinite;
+      background: #991b1b;
+    }
+    @keyframes pulseRecord {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(239,68,68,0.6); }
+      50% { transform: scale(1.03); box-shadow: 0 0 35px rgba(239,68,68,0.9); }
+    }
+
+    /* Progress bar */
+    .timeline-container {
+      margin-bottom: 16px;
+    }
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #1e2238;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ec4899, #facc15, #06b6d4);
+      transition: width 0.1s linear;
+    }
+
+    /* Scene markers */
+    .scenes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 14px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .scene-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: #16182c;
+      border-radius: 10px;
+      border-left: 4px solid #334155;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .scene-item.active {
+      border-left-color: #facc15;
+      background: #20223f;
+    }
+    .scene-time {
+      font-weight: 800;
+      color: #06b6d4;
+      font-family: monospace;
+      font-size: 11px;
+    }
+    .scene-title {
+      font-weight: 700;
+      color: #f1f5f9;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Voiceover Script box */
+    .script-box {
+      margin-top: 16px;
+      background: #0b0c16;
+      border: 1px solid #1e2238;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #cbd5e1;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .script-box strong {
+      color: #facc15;
+    }
+    .copy-btn {
+      margin-top: 8px;
+      font-size: 11px;
+      padding: 6px 12px;
+    }
+    .badge-studio {
+      display: inline-block;
+      padding: 3px 8px;
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid #22c55e;
+      color: #4ade80;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🎬 30-Second Meta Ad Video (Instagram Reels &amp; FB Ads)</h1>
+    <p class="sub">High-Converting Commercial for NO. 1 DOMAIN (no1domain.in) • Natural Studio Hindi Voiceover • 9:16 Video Ready</p>
+  </header>
+
+  <div class="main-container">
+    <!-- Video Canvas Screen (9:16 Reels Format) -->
+    <div class="video-wrapper">
+      <canvas id="adCanvas" width="720" height="1280"></canvas>
+    </div>
+
+    <!-- Controls & Script Sidebar -->
+    <div class="controls-card">
+      <h2>⚡ Video Controls &amp; Export <span class="badge-studio">STUDIO AUDIO</span></h2>
+
+      <div class="timeline-container">
+        <div class="timeline-header">
+          <span id="currentSceneText">Scene 1: The Hook</span>
+          <span id="timeDisplay">00:00 / 00:30</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">
+          ▶ Play Ad Video
+        </button>
+        <button class="btn btn-secondary" onclick="restartVideo()">
+          🔄 Restart (0s)
+        </button>
+        <button class="btn btn-record" id="recordBtn" onclick="startRecording()">
+          🔴 Record &amp; Download MP4/WebM
+        </button>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px;" id="voiceToggleBtn" onclick="toggleVoice()">
+          🔊 Voiceover: ON
+        </button>
+        <button class="btn btn-secondary" style="flex: 1; font-size: 11px; padding: 8px;" id="musicToggleBtn" onclick="toggleMusic()">
+          🎵 Music Beat: ON
+        </button>
+      </div>
+
+      <div style="font-size: 12px; font-weight: 700; color: #94a3b8; margin-top: 10px;">
+        5-Part 30-Second Timeline (Natural Flow):
+      </div>
+      <div class="scenes-list">
+        <div class="scene-item active" onclick="jumpTo(0)">
+          <span class="scene-time">00s-06s</span>
+          <span class="scene-title">🚨 The Hook: Traffic Problem &amp; Wasted Budget</span>
+        </div>
+        <div class="scene-item" onclick="jumpTo(6)">
+          <span class="scene-time">06s-12s</span>
+          <span class="scene-title">👑 The Solution: Introducing NO. 1 DOMAIN</span>
+        </div>
+        <div class="scene-item" onclick="jumpTo(12)">
+          <span class="scene-time">12s-18s</span>
+          <span class="scene-title">⚡ The Offer: Sirf ₹50 Mein Claim Karein #1 Rank</span>
+        </div>
+        <div class="scene-item" onclick="jumpTo(18)">
+          <span class="scene-time">18s-24s</span>
+          <span class="scene-title">📡 Live Proof: Real Visitors &amp; Instant UPI QR</span>
+        </div>
+        <div class="scene-item" onclick="jumpTo(24)">
+          <span class="scene-time">24s-30s</span>
+          <span class="scene-title">🚀 Call To Action: Visit no1domain.in Now!</span>
+        </div>
+      </div>
+
+      <!-- Voiceover Script for Ads Manager -->
+      <div class="script-box">
+        <strong>🎙️ Studio-Grade Hindi Voiceover Script (Continuous &amp; Natural):</strong><br>
+        ● <strong>00s-06s:</strong> "क्या आपकी वेबसाइट पर ट्रैफिक नहीं आ रहा? महंगे ऐड्स में पैसे बर्बाद करना बंद करें!"<br>
+        ● <strong>06s-12s:</strong> "पेश है नंबर वन डोमेन! भारत का सबसे पहला लाइव अटेंशन लीडरबोर्ड!"<br>
+        ● <strong>12s-18s:</strong> "सिर्फ पचास रुपये में अपना डोमेन लिस्ट करें और पाएं नंबर वन क्राउन रैंक!"<br>
+        ● <strong>18s-24s:</strong> "रियल टाइम लाइव विजिटर्स देखें और डायरेक्ट यूपीआई क्यूआर से तुरंत पे करें!"<br>
+        ● <strong>24s-30s:</strong> "मौका हाथ से न जाने दें! अभी विजिट करें no1domain.in और अपना क्राउन क्लेम करें!"
+      </div>
+      <div style="margin-top: 10px;">
+        <label style="font-size: 11px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 4px;">🎧 Listen to Continuous Studio Voiceover Track:</label>
+        <audio controls src="/audio/full_voiceover.mp3" style="width: 100%; height: 36px; border-radius: 8px; outline: none;"></audio>
+      </div>
+      <button class="btn btn-secondary copy-btn" onclick="copyScript()">
+        📋 Copy Meta Ad Caption &amp; Voice Script
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('adCanvas')
+    const ctx = canvas.getContext('2d')
+    const width = 720
+    const height = 1280
+
+    // Video State
+    const TOTAL_DURATION = 30 // 30 seconds punchy Reels & Meta Ads
+    let currentTime = 0
+    let isPlaying = false
+    let voiceEnabled = true
+    let musicEnabled = true
+    let isRecording = false
+    let mediaRecorder = null
+    let recordedChunks = []
+    let lastTimestamp = 0
+
+    // Web Audio Architecture
+    let audioCtx = null
+    let mediaStreamDest = null
+    let audioBuffers = {}
+    let currentVoiceSource = null
+    let audioPreloadStarted = false
+
+    // Scenes Definition with Pre-rendered High-Quality Natural MP3s
+    const scenes = [
+      {
+        id: 0,
+        start: 0,
+        end: 6,
+        audioFile: '/audio/scene1.mp3',
+        title: "🚨 The Hook: Traffic Problem",
+        voice: "क्या आपकी वेबसाइट पर ट्रैफिक नहीं आ रहा? महंगे ऐड्स में पैसे बर्बाद करना बंद करें!"
+      },
+      {
+        id: 1,
+        start: 6,
+        end: 12,
+        audioFile: '/audio/scene2.mp3',
+        title: "👑 The Solution: NO. 1 DOMAIN",
+        voice: "पेश है नंबर वन डोमेन! भारत का सबसे पहला लाइव अटेंशन लीडरबोर्ड!"
+      },
+      {
+        id: 2,
+        start: 12,
+        end: 18,
+        audioFile: '/audio/scene3.mp3',
+        title: "⚡ The Offer: Sirf ₹50 Mein #1",
+        voice: "सिर्फ पचास रुपये में अपना डोमेन लिस्ट करें और पाएं नंबर वन क्राउन रैंक!"
+      },
+      {
+        id: 3,
+        start: 18,
+        end: 24,
+        audioFile: '/audio/scene4.mp3',
+        title: "📡 Live Proof: Real Visitors & UPI",
+        voice: "रियल टाइम लाइव विजिटर्स देखें और डायरेक्ट यूपीआई क्यूआर से तुरंत पे करें!"
+      },
+      {
+        id: 4,
+        start: 24,
+        end: 30,
+        audioFile: '/audio/scene5.mp3',
+        title: "🚀 Call To Action: Claim Now!",
+        voice: "मौका हाथ से न जाने दें! अभी विजिट करें no1domain.in और अपना क्राउन क्लेम करें!"
+      }
+    ]
+
+    let spokenScenes = {}
+
+    // Initialize Audio Context & Stream Destination
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        mediaStreamDest = audioCtx.createMediaStreamDestination()
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume()
+      }
+      preloadAudioBuffers()
+    }
+
+    // Preload & Decode Natural Hindi MP3s
+    async function preloadAudioBuffers() {
+      if (audioPreloadStarted) return
+      audioPreloadStarted = true
+      for (const s of scenes) {
+        try {
+          const res = await fetch(s.audioFile)
+          const arrayBuf = await res.arrayBuffer()
+          audioBuffers[s.id] = await audioCtx.decodeAudioData(arrayBuf)
+        } catch(e) {
+          console.warn(`Could not preload ${s.audioFile}:`, e)
+        }
+      }
+    }
+
+    // Play Studio MP3 Voiceover for Current Scene
+    function playSceneAudio(sceneId) {
+      if (!voiceEnabled || !audioCtx || !audioBuffers[sceneId]) return
+      try {
+        if (currentVoiceSource) {
+          try { currentVoiceSource.stop() } catch(e) {}
+        }
+        const src = audioCtx.createBufferSource()
+        src.buffer = audioBuffers[sceneId]
+        
+        const gain = audioCtx.createGain()
+        gain.gain.value = 1.0 // Loud & clear
+        src.connect(gain)
+        gain.connect(audioCtx.destination)
+        if (mediaStreamDest) {
+          gain.connect(mediaStreamDest)
+        }
+        src.start(0)
+        currentVoiceSource = src
+      } catch(e) {
+        console.warn('Audio play exception:', e)
+      }
+    }
+
+    function stopVoiceAudio() {
+      if (currentVoiceSource) {
+        try { currentVoiceSource.stop() } catch(e) {}
+        currentVoiceSource = null
+      }
+    }
+
+    // High-Energy Upbeat Synth Beat
+    function playBeep(freq, type = 'sine', duration = 0.08, gainVal = 0.04) {
+      if (!musicEnabled || !audioCtx) return
+      try {
+        const osc = audioCtx.createOscillator()
+        const gain = audioCtx.createGain()
+        osc.type = type
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime)
+        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration)
+        osc.connect(gain)
+        gain.connect(audioCtx.destination)
+        if (mediaStreamDest) {
+          gain.connect(mediaStreamDest)
+        }
+        osc.start()
+        osc.stop(audioCtx.currentTime + duration)
+      } catch(e) {}
+    }
+
+    // Floating background particles
+    const particles = []
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: Math.random() * 3 + 1,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: -Math.random() * 1.5 - 0.5,
+        color: ['#facc15', '#ec4899', '#06b6d4', '#a855f7'][Math.floor(Math.random() * 4)]
+      })
+    }
+
+    function render(time) {
+      ctx.clearRect(0, 0, width, height)
+
+      // Background Gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, width, height)
+      bgGrad.addColorStop(0, '#0d0e1c')
+      bgGrad.addColorStop(0.5, '#080811')
+      bgGrad.addColorStop(1, '#05060a')
+      ctx.fillStyle = bgGrad
+      ctx.fillRect(0, 0, width, height)
+
+      // Ambient Glowing orbs
+      const orbGrad = ctx.createRadialGradient(width/2, 400, 10, width/2, 400, 350)
+      orbGrad.addColorStop(0, 'rgba(168, 85, 247, 0.18)')
+      orbGrad.addColorStop(0.5, 'rgba(234, 179, 8, 0.08)')
+      orbGrad.addColorStop(1, 'rgba(0, 0, 0, 0)')
+      ctx.fillStyle = orbGrad
+      ctx.fillRect(0, 0, width, height)
+
+      // Draw floating particles
+      particles.forEach(p => {
+        p.x += p.vx
+        p.y += p.vy
+        if (p.y < 0) p.y = height
+        if (p.x < 0) p.x = width
+        if (p.x > width) p.x = 0
+
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
+        ctx.fillStyle = p.color
+        ctx.shadowColor = p.color
+        ctx.shadowBlur = 10
+        ctx.fill()
+        ctx.shadowBlur = 0
+      })
+
+      // Top Brand Header (Visible in all scenes)
+      drawHeader()
+
+      // Current Scene
+      const scene = scenes.find(s => time >= s.start && time < s.end) || scenes[scenes.length - 1]
+      const sceneProgress = (time - scene.start) / (scene.end - scene.start)
+
+      // Trigger natural voiceover at start of scene
+      if (!spokenScenes[scene.id] && isPlaying) {
+        spokenScenes[scene.id] = true
+        playSceneAudio(scene.id)
+        playBeep(440, 'triangle', 0.2, 0.1)
+      }
+
+      // Render Scene Contents
+      if (scene.id === 0) drawScene0(sceneProgress, time)
+      else if (scene.id === 1) drawScene1(sceneProgress, time)
+      else if (scene.id === 2) drawScene2(sceneProgress, time)
+      else if (scene.id === 3) drawScene3(sceneProgress, time)
+      else if (scene.id === 4) drawScene4(sceneProgress, time)
+
+      // Bottom Persistent Progress Indicator
+      drawBottomBar(time)
+    }
+
+    function drawHeader() {
+      ctx.save()
+      ctx.fillStyle = 'rgba(20, 22, 38, 0.85)'
+      ctx.fillRect(40, 50, width - 80, 70)
+      ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)'
+      ctx.lineWidth = 2
+      ctx.strokeRect(40, 50, width - 80, 70)
+
+      // Logo Icon
+      ctx.fillStyle = '#facc15'
+      ctx.font = '900 28px "Outfit", sans-serif'
+      ctx.fillText('👑 NO. 1', 65, 96)
+      ctx.fillStyle = '#ec4899'
+      ctx.fillText('DOMAIN', 185, 96)
+
+      // URL Pill
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.15)'
+      ctx.fillRect(width - 240, 65, 175, 40)
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.5)'
+      ctx.strokeRect(width - 240, 65, 175, 40)
+      ctx.fillStyle = '#22d3ee'
+      ctx.font = '700 16px monospace'
+      ctx.fillText('no1domain.in', width - 225, 91)
+      ctx.restore()
+    }
+
+    // Scene 0: The Hook (0s - 6s)
+    function drawScene0(prog, time) {
+      ctx.save()
+      const pulse = Math.sin(time * 5) * 8
+
+      // Warning Badge
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.2)'
+      ctx.fillRect(width/2 - 160, 220, 320, 48)
+      ctx.strokeStyle = '#ef4444'
+      ctx.lineWidth = 2
+      ctx.strokeRect(width/2 - 160, 220, 320, 48)
+      ctx.fillStyle = '#f87171'
+      ctx.font = '900 18px "Plus Jakarta Sans"'
+      ctx.textAlign = 'center'
+      ctx.fillText('🚨 WEBSITE TRAFFIC ZERO HAI?', width/2, 252)
+
+      // Main Text
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '900 46px "Outfit"'
+      ctx.fillText('Kya Aapka Business', width/2, 340)
+      ctx.fillStyle = '#facc15'
+      ctx.fillText('Online Hai Lekin', width/2, 400)
+      ctx.fillStyle = '#ef4444'
+      ctx.fillText('VISITOR NAHI AA RAHE?', width/2, 460)
+
+      // Graphic: Low traffic chart
+      ctx.fillStyle = 'rgba(15, 17, 30, 0.9)'
+      ctx.fillRect(80, 520, width - 160, 280)
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'
+      ctx.strokeRect(80, 520, width - 160, 280)
+
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '700 16px "Plus Jakarta Sans"'
+      ctx.fillText('Traditional Meta & Google Ads', width/2, 560)
+      ctx.fillStyle = '#ef4444'
+      ctx.font = '900 36px "Outfit"'
+      ctx.fillText('₹50,000+ Barbaad ❌', width/2, 620)
+      ctx.fillStyle = '#64748b'
+      ctx.font = '600 18px "Plus Jakarta Sans"'
+      ctx.fillText('Boring Clicks • Fake Bots • High Cost', width/2, 670)
+
+      // Alert Footnote
+      ctx.fillStyle = '#e2e8f0'
+      ctx.font = '800 24px "Plus Jakarta Sans"'
+      ctx.fillText('Ab Purane Tarike Chhodiye! 👇', width/2, 880 + pulse)
+      ctx.restore()
+    }
+
+    // Scene 1: The Big Solution (6s - 12s)
+    function drawScene1(prog, time) {
+      ctx.save()
+      ctx.textAlign = 'center'
+
+      // Crown Animation
+      const crownY = 240 + Math.sin(time * 3) * 12
+      ctx.font = '80px sans-serif'
+      ctx.fillText('👑', width/2, crownY)
+
+      ctx.fillStyle = '#facc15'
+      ctx.font = '900 22px "Plus Jakarta Sans"'
+      ctx.fillText('INDIA\'S 1ST LIVE ATTENTION BOARD', width/2, 320)
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '900 52px "Outfit"'
+      ctx.fillText('NO. 1 DOMAIN', width/2, 385)
+
+      // 3D Podium Graphic (#1, #2, #3)
+      ctx.fillStyle = 'rgba(20, 22, 38, 0.9)'
+      ctx.fillRect(80, 440, width - 160, 360)
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.5)'
+      ctx.lineWidth = 3
+      ctx.strokeRect(80, 440, width - 160, 360)
+
+      // #1 Crown Spot
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.15)'
+      ctx.fillRect(110, 480, width - 220, 90)
+      ctx.strokeStyle = '#facc15'
+      ctx.strokeRect(110, 480, width - 220, 90)
+      ctx.fillStyle = '#facc15'
+      ctx.font = '900 28px "Outfit"'
+      ctx.fillText('#1 TOP CROWN SPOT 👑', width/2, 520)
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '700 16px monospace'
+      ctx.fillText('Sabse Zyada Traffic & Customers!', width/2, 550)
+
+      // #2 & #3 Spots
+      ctx.fillStyle = 'rgba(236, 72, 153, 0.12)'
+      ctx.fillRect(110, 590, (width - 240)/2, 80)
+      ctx.fillStyle = '#ec4899'
+      ctx.font = '800 20px "Outfit"'
+      ctx.fillText('#2 Spot', 110 + (width - 240)/4, 638)
+
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.12)'
+      ctx.fillRect(130 + (width - 240)/2, 590, (width - 240)/2, 80)
+      ctx.fillStyle = '#06b6d4'
+      ctx.font = '800 20px "Outfit"'
+      ctx.fillText('#3 Spot', 130 + (width - 240)*0.75, 638)
+
+      ctx.fillStyle = '#a855f7'
+      ctx.font = '800 24px "Plus Jakarta Sans"'
+      ctx.fillText('Direct 100% Public Attention!', width/2, 750)
+      ctx.restore()
+    }
+
+    // Scene 2: The Offer (12s - 18s)
+    function drawScene2(prog, time) {
+      ctx.save()
+      ctx.textAlign = 'center'
+
+      ctx.fillStyle = '#22d3ee'
+      ctx.font = '900 20px "Plus Jakarta Sans"'
+      ctx.fillText('⚡ LIMITED LAUNCH OFFER', width/2, 240)
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '900 48px "Outfit"'
+      ctx.fillText('Apna Domain #1 Banayein', width/2, 305)
+
+      // Big Price Tag
+      const scale = 1 + Math.sin(time * 4) * 0.05
+      ctx.save()
+      ctx.translate(width/2, 420)
+      ctx.scale(scale, scale)
+
+      ctx.fillStyle = 'rgba(234, 179, 8, 0.2)'
+      ctx.beginPath()
+      ctx.roundRect(-200, -80, 400, 160, 24)
+      ctx.fill()
+      ctx.strokeStyle = '#eab308'
+      ctx.lineWidth = 4
+      ctx.stroke()
+
+      ctx.fillStyle = '#facc15'
+      ctx.font = '900 80px "Outfit"'
+      ctx.fillText('SIRF ₹50', 0, 15)
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '700 18px "Plus Jakarta Sans"'
+      ctx.fillText('No Monthly Subscription • 100% Transparent', 0, 55)
+      ctx.restore()
+
+      // Comparison box
+      ctx.fillStyle = 'rgba(20, 22, 38, 0.9)'
+      ctx.fillRect(80, 560, width - 160, 260)
+      ctx.strokeStyle = 'rgba(168, 85, 247, 0.3)'
+      ctx.strokeRect(80, 560, width - 160, 260)
+
+      ctx.fillStyle = '#4ade80'
+      ctx.font = '800 21px "Plus Jakarta Sans"'
+      ctx.fillText('✅ 1-Minute Fast Listing', width/2, 615)
+      ctx.fillText('✅ Direct Click to Your Website', width/2, 665)
+      ctx.fillText('✅ Outbid Rule: Keep Crown with +₹50', width/2, 715)
+      ctx.fillText('✅ No Agency Fees • India\'s Premier Board', width/2, 765)
+      ctx.restore()
+    }
+
+    // Scene 3: Live Proof & UPI (18s - 24s)
+    function drawScene3(prog, time) {
+      ctx.save()
+      ctx.textAlign = 'center'
+
+      ctx.fillStyle = '#06b6d4'
+      ctx.font = '900 20px "Plus Jakarta Sans"'
+      ctx.fillText('📡 100% REAL & VERIFIED', width/2, 230)
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '900 44px "Outfit"'
+      ctx.fillText('Live Visitor Tracking', width/2, 290)
+
+      // Live Counter Box
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.15)'
+      ctx.fillRect(80, 340, width - 160, 140)
+      ctx.strokeStyle = '#06b6d4'
+      ctx.lineWidth = 3
+      ctx.strokeRect(80, 340, width - 160, 140)
+
+      // Dynamic ticking count
+      const visitorCount = Math.floor(1450 + (prog * 350))
+      ctx.fillStyle = '#22d3ee'
+      ctx.font = '900 54px monospace'
+      ctx.fillText(`${visitorCount.toLocaleString('en-IN')}`, width/2, 415)
+      ctx.fillStyle = '#4ade80'
+      ctx.font = '800 16px "Plus Jakarta Sans"'
+      ctx.fillText('● LIVE VISITORS ONLINE NOW', width/2, 455)
+
+      // UPI Payment Card Demo
+      ctx.fillStyle = 'rgba(20, 22, 38, 0.95)'
+      ctx.fillRect(80, 520, width - 160, 290)
+      ctx.strokeStyle = 'rgba(74, 222, 128, 0.4)'
+      ctx.strokeRect(80, 520, width - 160, 290)
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '900 24px "Outfit"'
+      ctx.fillText('Instant Dynamic UPI QR Code', width/2, 565)
+
+      // QR Code Box Placeholder
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(width/2 - 60, 590, 120, 120)
+      ctx.fillStyle = '#000000'
+      ctx.font = '900 36px monospace'
+      ctx.fillText('QR', width/2, 665)
+
+      ctx.fillStyle = '#e2e8f0'
+      ctx.font = '700 16px "Plus Jakarta Sans"'
+      ctx.fillText('PhonePe • GPay • Paytm • BHIM', width/2, 750)
+      ctx.fillStyle = '#4ade80'
+      ctx.font = '800 15px "Plus Jakarta Sans"'
+      ctx.fillText('Instant Auto-Verification ⚡', width/2, 785)
+      ctx.restore()
+    }
+
+    // Scene 4: Call To Action (24s - 30s)
+    function drawScene4(prog, time) {
+      ctx.save()
+      ctx.textAlign = 'center'
+
+      const pulse = 1 + Math.sin(time * 6) * 0.04
+
+      ctx.font = '90px sans-serif'
+      ctx.fillText('👑', width/2, 250)
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '900 50px "Outfit"'
+      ctx.fillText('CLAIM YOUR #1 CROWN', width/2, 330)
+
+      ctx.fillStyle = '#facc15'
+      ctx.font = '900 36px "Outfit"'
+      ctx.fillText('Starting at Just ₹50!', width/2, 390)
+
+      // CTA Button
+      ctx.save()
+      ctx.translate(width/2, 540)
+      ctx.scale(pulse, pulse)
+
+      ctx.fillStyle = '#eab308'
+      ctx.beginPath()
+      ctx.roundRect(-240, -55, 480, 110, 30)
+      ctx.fill()
+      ctx.shadowColor = '#eab308'
+      ctx.shadowBlur = 40
+      ctx.stroke()
+      ctx.shadowBlur = 0
+
+      ctx.fillStyle = '#020617'
+      ctx.font = '900 32px "Outfit"'
+      ctx.fillText('CLAIM RANK NOW ↗', 0, 10)
+      ctx.restore()
+
+      // Website URL Box
+      ctx.fillStyle = 'rgba(20, 22, 38, 0.95)'
+      ctx.fillRect(80, 660, width - 160, 130)
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.6)'
+      ctx.lineWidth = 3
+      ctx.strokeRect(80, 660, width - 160, 130)
+
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '700 16px "Plus Jakarta Sans"'
+      ctx.fillText('Visit Official Website Today:', width/2, 700)
+      ctx.fillStyle = '#22d3ee'
+      ctx.font = '900 38px monospace'
+      ctx.fillText('no1domain.in', width/2, 755)
+
+      ctx.fillStyle = '#ec4899'
+      ctx.font = '800 20px "Plus Jakarta Sans"'
+      ctx.fillText('⚡ First Come, First Served!', width/2, 850)
+      ctx.restore()
+    }
+
+    // Bottom Persistent Time Bar
+    function drawBottomBar(time) {
+      ctx.save()
+      ctx.fillStyle = 'rgba(11, 13, 24, 0.95)'
+      ctx.fillRect(0, height - 70, width, 70)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+      ctx.strokeRect(0, height - 70, width, 70)
+
+      // Progress Line
+      const pct = Math.min(1, time / TOTAL_DURATION)
+      ctx.fillStyle = '#eab308'
+      ctx.fillRect(0, height - 70, width * pct, 6)
+
+      ctx.fillStyle = '#94a3b8'
+      ctx.font = '700 16px monospace'
+      ctx.fillText(`00:${Math.floor(time).toString().padStart(2, '0')} / 00:30`, 30, height - 28)
+
+      ctx.fillStyle = '#facc15'
+      ctx.font = '900 16px "Outfit"'
+      ctx.textAlign = 'right'
+      ctx.fillText('NO. 1 DOMAIN • META AD 30S', width - 30, height - 28)
+      ctx.restore()
+    }
+
+    // Animation Loop
+    function animate(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp
+      const delta = (timestamp - lastTimestamp) / 1000
+      lastTimestamp = timestamp
+
+      if (isPlaying) {
+        currentTime += delta
+        if (currentTime >= TOTAL_DURATION) {
+          currentTime = TOTAL_DURATION
+          isPlaying = false
+          stopVoiceAudio()
+          document.getElementById('playBtn').innerHTML = '▶ Replay Video'
+          if (isRecording) stopRecording()
+        }
+
+        // Periodic subtle synth beats (every second)
+        if (Math.floor(currentTime * 2) !== Math.floor((currentTime - delta) * 2)) {
+          playBeep(220, 'sine', 0.06, 0.03)
+        }
+
+        updateUI()
+      }
+
+      render(currentTime)
+      requestAnimationFrame(animate)
+    }
+
+    function updateUI() {
+      const pct = (currentTime / TOTAL_DURATION) * 100
+      document.getElementById('progressFill').style.width = pct + '%'
+      const secs = Math.floor(currentTime)
+      document.getElementById('timeDisplay').innerText = `00:${secs.toString().padStart(2, '0')} / 00:30`
+
+      const activeScene = scenes.find(s => currentTime >= s.start && currentTime < s.end) || scenes[scenes.length - 1]
+      document.getElementById('currentSceneText').innerText = activeScene.title
+
+      // Update scene item highlight
+      document.querySelectorAll('.scene-item').forEach((el, idx) => {
+        if (idx === activeScene.id) el.classList.add('active')
+        else el.classList.remove('active')
+      })
+    }
+
+    function togglePlay() {
+      initAudio()
+      isPlaying = !isPlaying
+      document.getElementById('playBtn').innerHTML = isPlaying ? '⏸ Pause' : '▶ Play Ad Video'
+      if (!isPlaying) {
+        stopVoiceAudio()
+      }
+      if (isPlaying && currentTime >= TOTAL_DURATION) {
+        restartVideo()
+      }
+    }
+
+    function restartVideo() {
+      currentTime = 0
+      spokenScenes = {}
+      stopVoiceAudio()
+      updateUI()
+      if (!isPlaying) togglePlay()
+    }
+
+    function jumpTo(sec) {
+      currentTime = sec
+      spokenScenes = {}
+      stopVoiceAudio()
+      updateUI()
+    }
+
+    function toggleVoice() {
+      voiceEnabled = !voiceEnabled
+      document.getElementById('voiceToggleBtn').innerText = voiceEnabled ? '🔊 Voiceover: ON' : '🔇 Voiceover: OFF'
+      if (!voiceEnabled) stopVoiceAudio()
+    }
+
+    function toggleMusic() {
+      musicEnabled = !musicEnabled
+      document.getElementById('musicToggleBtn').innerText = musicEnabled ? '🎵 Music Beat: ON' : '🔇 Music Beat: OFF'
+    }
+
+    // MediaRecorder Video Export with Audio
+    async function startRecording() {
+      initAudio()
+      await preloadAudioBuffers()
+      restartVideo()
+
+      const canvasStream = canvas.captureStream(30)
+      let combinedStream = canvasStream
+
+      if (mediaStreamDest && mediaStreamDest.stream && mediaStreamDest.stream.getAudioTracks().length > 0) {
+        combinedStream = new MediaStream([
+          ...canvasStream.getVideoTracks(),
+          ...mediaStreamDest.stream.getAudioTracks()
+        ])
+      }
+
+      recordedChunks = []
+
+      let options = { mimeType: 'video/webm;codecs=vp9,opus' }
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm;codecs=vp8,opus' }
+      }
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm' }
+      }
+
+      try {
+        mediaRecorder = new MediaRecorder(combinedStream, options)
+      } catch (e) {
+        alert('Browser media recorder notice: ' + e.message)
+        return
+      }
+
+      mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) recordedChunks.push(e.data)
+      }
+
+      mediaRecorder.onstop = function() {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.download = 'NO1DOMAIN_META_AD_30S.webm'
+        document.body.appendChild(a)
+        a.click()
+        setTimeout(() => {
+          document.body.removeChild(a)
+          window.URL.revokeObjectURL(url)
+        }, 100)
+        isRecording = false
+        const recBtn = document.getElementById('recordBtn')
+        recBtn.classList.remove('recording')
+        recBtn.innerHTML = '🔴 Record &amp; Download MP4/WebM'
+        alert('🎉 30s Video Downloaded Successfully! Check your Downloads folder for NO1DOMAIN_META_AD_30S.webm with studio audio!')
+      }
+
+      mediaRecorder.start()
+      isRecording = true
+      const recBtn = document.getElementById('recordBtn')
+      recBtn.classList.add('recording')
+      recBtn.innerHTML = '⏳ Recording 30s Video...'
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop()
+      }
+    }
+
+    function copyScript() {
+      const script = `🚨 KYA AAPKI WEBSITE PAR TRAFFIC NAHI AA RAHA?
+Boring Facebook aur Google Ads me lakho rupaye barbad karna band karein!
+
+👑 Introducing NO. 1 DOMAIN (no1domain.in) — India's Premier Live Attention & Domain Leaderboard!
+⚡ Sirf ₹50 se start karein aur claim karein #1 Crown Rank!
+● No complex SEO • Direct public traffic
+● Real-time live visitors counter
+● Instant UPI QR code (GPay, PhonePe, Paytm)
+
+Mauka mat chhodiye! Abhi visit karein 👉 https://no1domain.in aur apna crown claim karein! 👑`
+
+      navigator.clipboard.writeText(script)
+      alert('✅ Meta Ad Voiceover Script & Instagram Caption copied to clipboard!')
+    }
+
+    // Initial render
+    render(0)
+    requestAnimationFrame(animate)
+  </script>
+</body>
+</html>

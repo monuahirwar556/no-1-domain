@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Zip Archives & Backups
+*.zip
+backups/
+test_unzip/
+test_unzip_verify/
+
+# Local databases (Hostinger maintains its own live dev.db)
+dev.db
+dev.db-journal
+dev.db-wal
+dev.db-shm

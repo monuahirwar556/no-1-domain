@@ -1,0 +1,49 @@
+{
+  "name": "no1domain-bid",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "prebuild": "prisma generate",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.12.0",
+    "@types/react": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.372.0",
+    "next": "^14.2.0",
+    "next-auth": "^4.24.0",
+    "postcss": "^8.4.38",
+    "prisma": "^5.14.0",
+    "razorpay": "^2.9.8",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "sharp": "^0.35.5",
+    "tailwind-merge": "^2.2.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.4.0",
+    "zod": "^3.23.0",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "archiver": "^8.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.0"
+  },
+  "overrides": {
+    "sharp": "^0.35.5"
+  }
+}
