@@ -11,6 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "deploy": "git add . && git commit -m \"Auto update\" && git push",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
