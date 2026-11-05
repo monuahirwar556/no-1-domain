@@ -131,6 +131,16 @@ async function autoMigrateDatabase() {
       console.warn('Notice setting razorpay keys in DB:', rzpErr.message)
     }
 
+    // Ensure amazon.in is locked at Rank 1 with ₹1050
+    try {
+      await p.$executeRawUnsafe(`
+        UPDATE Listing SET currentBid = 1050, startingBid = 1050, status = 'ACTIVE' WHERE domain = 'amazon.in';
+      `)
+      console.log('Automated listing update: amazon.in locked at 1050 (Rank 1)')
+    } catch (amazonErr) {
+      console.warn('Notice setting amazon.in bid:', amazonErr.message)
+    }
+
     await p.$disconnect()
     console.log('Automated database schema self-healing check complete.')
   } catch (err) {

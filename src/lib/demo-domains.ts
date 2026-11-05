@@ -27,7 +27,21 @@ export const MAIN_SHOWCASE_DOMAINS: DemoDomainData[] = [
   // TOP 20 SHOWCASE DOMAINS (1000 down to 50 in steps of 50)
   // ==========================================
 
-  // #1 - ₹1,000 - Tech, AI & Software (Rank 1 overall on "All", next outbid = ₹1,050)
+  // #1 - ₹1,050 - Ecommerce & Retail (Rank 1 overall on "All", next outbid = ₹1,100)
+  {
+    title: 'amazon.in',
+    domain: 'amazon.in',
+    websiteUrl: 'https://www.amazon.in',
+    category: 'Ecommerce & Retail',
+    rank: 1,
+    tier: 1050,
+    clicks: 712,
+    description: "India's premier online marketplace for electronics, fashion, groceries, home appliances, and daily essentials.",
+    status: 'ACTIVE',
+    imageUrl: 'https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://amazon.in&size=128',
+  },
+
+  // #2 - ₹1,000 - Tech, AI & Software (next outbid = ₹1,050)
   {
     title: 'geeksforgeeks.org',
     domain: 'geeksforgeeks.org',
@@ -41,7 +55,7 @@ export const MAIN_SHOWCASE_DOMAINS: DemoDomainData[] = [
     imageUrl: 'https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://geeksforgeeks.org&size=128',
   },
 
-  // #2 - ₹950 - Education & EdTech (Rank 1 in Education, next outbid = ₹1,000)
+  // #3 - ₹950 - Education & EdTech (next outbid = ₹1,000)
   {
     title: 'internshala.com',
     domain: 'internshala.com',
@@ -55,7 +69,7 @@ export const MAIN_SHOWCASE_DOMAINS: DemoDomainData[] = [
     imageUrl: 'https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://internshala.com&size=128',
   },
 
-  // #3 - ₹900 - Education & EdTech
+  // #4 - ₹900 - Education & EdTech
   {
     title: 'unstop.com',
     domain: 'unstop.com',
@@ -67,20 +81,6 @@ export const MAIN_SHOWCASE_DOMAINS: DemoDomainData[] = [
     description: 'Early talent discovery engagement and hiring platform for hackathons, business competitions, and quizzes.',
     status: 'ACTIVE',
     imageUrl: 'https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://unstop.com&size=128',
-  },
-
-  // #4 - ₹850 - Ecommerce & Retail (Rank 1 in Ecommerce, next outbid = ₹900)
-  {
-    title: 'amazon.in',
-    domain: 'amazon.in',
-    websiteUrl: 'https://www.amazon.in',
-    category: 'Ecommerce & Retail',
-    rank: 1,
-    tier: 850,
-    clicks: 529,
-    description: "India's premier online marketplace for electronics, fashion, groceries, home appliances, and daily essentials.",
-    status: 'ACTIVE',
-    imageUrl: 'https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://amazon.in&size=128',
   },
 
   // #5 - ₹800 - Media & Entertainment (Rank 1 in Media, next outbid = ₹850)
