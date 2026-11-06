@@ -16,6 +16,7 @@ export interface SiteSettings {
   xPixelId?: string
   xPixelToken?: string
   xConversionEventId?: string
+  totalSiteViews?: number
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -33,6 +34,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   xPixelId: process.env.X_PIXEL_ID || 'rgkb5',
   xPixelToken: process.env.X_PIXEL_TOKEN || '',
   xConversionEventId: process.env.X_CONVERSION_EVENT_ID || 'tw-rgkb5-purchase',
+  totalSiteViews: 8610,
 }
 
 const SETTINGS_KEYS = {
@@ -50,6 +52,7 @@ const SETTINGS_KEYS = {
   xPixelId: 'x_pixel_id',
   xPixelToken: 'x_pixel_token',
   xConversionEventId: 'x_conversion_event_id',
+  totalSiteViews: 'total_site_views',
 } as const
 
 export async function getSettings(): Promise<SiteSettings> {
@@ -107,6 +110,7 @@ export async function getSettings(): Promise<SiteSettings> {
       xPixelId: settingsMap.get(SETTINGS_KEYS.xPixelId) || DEFAULT_SETTINGS.xPixelId,
       xPixelToken: settingsMap.get(SETTINGS_KEYS.xPixelToken) || DEFAULT_SETTINGS.xPixelToken,
       xConversionEventId: settingsMap.get(SETTINGS_KEYS.xConversionEventId) || DEFAULT_SETTINGS.xConversionEventId,
+      totalSiteViews: parseInt(settingsMap.get(SETTINGS_KEYS.totalSiteViews) || String(DEFAULT_SETTINGS.totalSiteViews), 10),
     }
   } catch (err) {
     console.warn('Settings table not ready, initializing database...', err)
@@ -138,6 +142,7 @@ export async function getSettings(): Promise<SiteSettings> {
         xPixelId: settingsMap.get(SETTINGS_KEYS.xPixelId) || DEFAULT_SETTINGS.xPixelId,
         xPixelToken: settingsMap.get(SETTINGS_KEYS.xPixelToken) || DEFAULT_SETTINGS.xPixelToken,
         xConversionEventId: settingsMap.get(SETTINGS_KEYS.xConversionEventId) || DEFAULT_SETTINGS.xConversionEventId,
+        totalSiteViews: parseInt(settingsMap.get(SETTINGS_KEYS.totalSiteViews) || String(DEFAULT_SETTINGS.totalSiteViews), 10),
       }
     } catch (fallbackErr) {
       return DEFAULT_SETTINGS

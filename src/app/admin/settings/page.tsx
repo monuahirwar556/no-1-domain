@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Alert, Badge } from '@/components/ui'
-import { Crown, Save, Shield, ArrowLeft, Landmark, CheckCircle, RefreshCw, QrCode, Smartphone, AlertCircle, ExternalLink } from 'lucide-react'
+import { Crown, Save, Shield, ArrowLeft, Landmark, CheckCircle, RefreshCw, QrCode, Smartphone, AlertCircle, ExternalLink, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { formatINR } from '@/lib/utils'
 import { useTheme } from '@/context/ThemeContext'
@@ -21,6 +21,7 @@ interface Settings {
   razorpayKeyId: string
   razorpayKeySecret: string
   upiId: string
+  totalSiteViews?: number
 }
 
 export default function AdminSettingsPage() {
@@ -38,6 +39,7 @@ export default function AdminSettingsPage() {
     razorpayKeyId: '',
     razorpayKeySecret: '',
     upiId: '',
+    totalSiteViews: 8610,
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -377,6 +379,37 @@ export default function AdminSettingsPage() {
                   />
                 </div>
                 <p className="text-xs text-dark-500 mt-1">Current maximum: {formatINR(settings.maximumBid)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Live Total Views Counter Setting */}
+        <Card variant="outlined" className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-sky-500" />
+              Total Site Views Counter (कुल व्यूज - Live Counter)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="p-4 bg-sky-50/50 rounded-xl border border-sky-200">
+                <label className="block text-sm font-bold text-dark-900 mb-1">
+                  Total Site Views (कुल व्यूज)
+                </label>
+                <div className="relative mt-2">
+                  <input
+                    type="number"
+                    value={settings.totalSiteViews ?? 8610}
+                    onChange={(e) => handleChange('totalSiteViews', parseInt(e.target.value) || 8610)}
+                    className="w-full px-4 py-2.5 border border-sky-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold text-lg"
+                    min="1"
+                  />
+                </div>
+                <p className="text-xs text-sky-800 mt-2 font-medium">
+                  Ye live website ka Total Views counter hai. Roj aane wale naye customers isme automatically +1 hote jayenge aur ye kabhi reset nahi hoga.
+                </p>
               </div>
             </div>
           </CardContent>

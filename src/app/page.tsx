@@ -638,7 +638,7 @@ export default function HomePage() {
   const [todayVisits, setTodayVisits] = useState(0)
   const [liveOnlineCount, setLiveOnlineCount] = useState(1)
   const [todayVisitorsCount, setTodayVisitorsCount] = useState(26)
-  const [totalViewsCount, setTotalViewsCount] = useState(8532)
+  const [totalViewsCount, setTotalViewsCount] = useState(8610)
   const [visitorSessionId, setVisitorSessionId] = useState('')
 
   // Top 3 Podium Domains (Always persistent all-time #1, #2, #3 champions)
@@ -936,9 +936,13 @@ export default function HomePage() {
 
     const recordVisit = async () => {
       try {
-        const res = await fetch('/api/track-visit', {
+        const res = await fetch(`/api/track-visit?t=${Date.now()}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+          },
+          cache: 'no-store',
           body: JSON.stringify({
             sessionId,
             isNewSession: true,
@@ -1066,11 +1070,14 @@ export default function HomePage() {
 
     document.addEventListener('click', handleGlobalClick, { capture: true })
 
-    // Poll live online users and total views smoothly when page is active
+    // Poll live online users and total views smoothly in real-time when page is active
     const pollTimer = setInterval(async () => {
       if (typeof document !== 'undefined' && document.hidden) return
       try {
-        const res = await fetch('/api/track-visit')
+        const res = await fetch(`/api/track-visit?t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        })
         if (res.ok) {
           const data = await res.json()
           if (typeof data.liveOnline === 'number') setLiveOnlineCount(data.liveOnline)
@@ -1081,7 +1088,7 @@ export default function HomePage() {
           if (typeof data.totalViews === 'number') setTotalViewsCount(data.totalViews)
         }
       } catch (e) {}
-    }, 10000)
+    }, 3500)
 
     return () => {
       clearInterval(pollTimer)

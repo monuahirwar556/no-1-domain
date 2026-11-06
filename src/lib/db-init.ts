@@ -200,24 +200,21 @@ export async function ensureDatabaseReady() {
         })
       }
 
-      // Ensure baseline live stats: 8532 views and 26 visitors today
+      // Ensure baseline live stats: at least 8610 views (never reset backwards)
       const viewsSetting = await prisma.setting.findUnique({ where: { key: 'total_site_views' } })
       const currentViews = parseInt(viewsSetting?.value || '0', 10)
-      if (currentViews < 8532 || currentViews > 50000) {
+      if (!viewsSetting || isNaN(currentViews) || currentViews < 8610) {
         await prisma.setting.upsert({
           where: { key: 'total_site_views' },
-          update: { value: '8532' },
-          create: { key: 'total_site_views', value: '8532' },
+          update: { value: '8610' },
+          create: { key: 'total_site_views', value: '8610' },
         })
       }
 
       const visitorsSetting = await prisma.setting.findUnique({ where: { key: 'today_site_visitors' } })
-      const currentVisitors = parseInt(visitorsSetting?.value || '0', 10)
-      if (currentVisitors < 26) {
-        await prisma.setting.upsert({
-          where: { key: 'today_site_visitors' },
-          update: { value: '26' },
-          create: { key: 'today_site_visitors', value: '26' },
+      if (!visitorsSetting) {
+        await prisma.setting.create({
+          data: { key: 'today_site_visitors', value: '26' },
         })
       }
     }

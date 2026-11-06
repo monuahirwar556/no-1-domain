@@ -34,6 +34,7 @@ import {
   ToggleRight,
   Video,
   Play,
+  Eye,
 } from 'lucide-react'
 import { formatINR } from '@/lib/utils'
 import { CATEGORIES } from '@/lib/categories'
@@ -73,6 +74,7 @@ interface PlatformSettings {
   xPixelId?: string
   xPixelToken?: string
   xConversionEventId?: string
+  totalSiteViews?: number
 }
 
 const QUICK_DOMAIN_PRESETS = [
@@ -178,6 +180,7 @@ export default function AdminDashboardPage() {
     qrEnabled: true,
     xPixelId: '',
     xPixelToken: '',
+    totalSiteViews: 8610,
     xConversionEventId: '',
   })
   const [savingSettings, setSavingSettings] = useState(false)
@@ -1424,6 +1427,46 @@ export default function AdminDashboardPage() {
                     }`}
                   />
                   <p className={`text-[11px] mt-1 ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>Base tier required to enter the directory (₹50).</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Counter & Analytics Base (Total Views) */}
+            <div className={`rounded-2xl p-6 border shadow-xl transition-all ${
+              isDark ? 'bg-[#0f101c] border-zinc-800' : 'bg-white border-slate-200 text-slate-900 shadow-slate-200/50'
+            }`}>
+              <div className="flex items-center gap-3 mb-4">
+                <Eye className={`w-6 h-6 ${isDark ? 'text-cyan-400' : 'text-sky-600'}`} />
+                <div>
+                  <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Total Site Views Counter (कुल व्यूज - Live Counter)
+                  </h3>
+                  <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                    Daily customer arrivals continuously add into this counter in real-time. It accumulates forever and never resets.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-xs font-bold mb-2 ${isDark ? 'text-zinc-300' : 'text-slate-700'}`}>
+                    Total Views Counter (कुल व्यूज)
+                  </label>
+                  <input
+                    type="number"
+                    value={settings.totalSiteViews ?? 8610}
+                    onChange={e =>
+                      setSettings(prev => ({ ...prev, totalSiteViews: parseInt(e.target.value) || 8610 }))
+                    }
+                    className={`w-full border rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none transition-colors ${
+                      isDark
+                        ? 'bg-[#161828] border-zinc-700/80 text-white focus:border-cyan-500'
+                        : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-500'
+                    }`}
+                  />
+                  <p className={`text-[11px] mt-1 ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+                    Live site total views counter. Increments +1 automatically with each customer visit.
+                  </p>
                 </div>
               </div>
             </div>

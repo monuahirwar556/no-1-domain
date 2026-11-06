@@ -6,6 +6,12 @@ import { detectGeoFromHeaders, detectDeviceAndBrowser } from '@/lib/geo'
 
 export const dynamic = 'force-dynamic'
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+}
+
 // In-memory active live users store (session/ip -> timestamp)
 const activeUsers = new Map<string, number>()
 
@@ -35,12 +41,13 @@ async function getAnalyticsData() {
     prisma.setting.findUnique({ where: { key: 'today_visitors_date' } }),
   ])
 
-  let totalViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 8532)
-  let todayVisitors = Math.max(parseInt(todayVisitorsSetting?.value || '0', 10), 26)
+  // Total views baseline starts at minimum 8610 and continuously accumulates forever (never resets back)
+  let totalViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 8610)
+  let todayVisitors = parseInt(todayVisitorsSetting?.value || '0', 10)
 
-  // Reset today's count if day changed
+  // Reset today's count if day changed, but keep totalViews growing!
   if (todayDateSetting?.value !== todayStr) {
-    todayVisitors = 26
+    todayVisitors = 0
     await prisma.setting.upsert({
       where: { key: 'today_visitors_date' },
       update: { value: todayStr },
@@ -48,8 +55,8 @@ async function getAnalyticsData() {
     })
     await prisma.setting.upsert({
       where: { key: 'today_site_visitors' },
-      update: { value: '26' },
-      create: { key: 'today_site_visitors', value: '26' },
+      update: { value: '0' },
+      create: { key: 'today_site_visitors', value: '0' },
     })
   }
 
@@ -68,20 +75,26 @@ async function getAnalyticsData() {
 export async function GET() {
   try {
     const data = await getAnalyticsData()
-    return NextResponse.json({
-      success: true,
-      liveOnline: data.liveOnline,
-      todayVisitors: data.todayVisitors,
-      totalViews: data.totalViews,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        liveOnline: data.liveOnline,
+        todayVisitors: data.todayVisitors,
+        totalViews: data.totalViews,
+      },
+      { headers: NO_CACHE_HEADERS }
+    )
   } catch (error: any) {
     console.error('Error fetching live visitor stats:', error)
-    return NextResponse.json({
-      success: true,
-      liveOnline: Math.max(activeUsers.size, 1),
-      todayVisitors: 26,
-      totalViews: 8532,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        liveOnline: Math.max(activeUsers.size, 1),
+        todayVisitors: 26,
+        totalViews: 8610,
+      },
+      { headers: NO_CACHE_HEADERS }
+    )
   }
 }
 
@@ -122,9 +135,9 @@ export async function POST(request: NextRequest) {
 
     const todayStr = getTodayString()
 
-    // 1. Increment total site views starting from base 8532 (always increments on every visit)
+    // 1. Increment total site views starting from base 8610 (always increments on every visit)
     const viewsSetting = await prisma.setting.findUnique({ where: { key: 'total_site_views' } })
-    const baseViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 8532)
+    const baseViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 8610)
     const currentViews = baseViews + 1
 
     await prisma.setting.upsert({
@@ -147,7 +160,7 @@ export async function POST(request: NextRequest) {
     } else {
       const todayVisitorsSetting = await prisma.setting.findUnique({ where: { key: 'today_site_visitors' } })
       const prev = parseInt(todayVisitorsSetting?.value || '0', 10)
-      todayVisitors = prev + 1 // Always count every visit - 100 visits = 100 count!
+      todayVisitors = prev + 1 // Always count every visit
     }
 
     await prisma.setting.upsert({
@@ -193,31 +206,37 @@ export async function POST(request: NextRequest) {
 
     const liveOnline = Math.max(activeUsers.size, 1)
 
-    return NextResponse.json({
-      success: true,
-      liveOnline,
-      todayVisitors,
-      totalViews: currentViews,
-      isMobile,
-      geo: {
-        country: geo.countryName,
-        city: geo.city,
-        flag: geo.flag,
+    return NextResponse.json(
+      {
+        success: true,
+        liveOnline,
+        todayVisitors,
+        totalViews: currentViews,
+        isMobile,
+        geo: {
+          country: geo.countryName,
+          city: geo.city,
+          flag: geo.flag,
+        },
+        system: {
+          browser: deviceInfo.browser,
+          device: deviceInfo.device,
+          os: deviceInfo.os,
+        },
+        recordedAt: new Date().toISOString(),
       },
-      system: {
-        browser: deviceInfo.browser,
-        device: deviceInfo.device,
-        os: deviceInfo.os,
-      },
-      recordedAt: new Date().toISOString(),
-    })
+      { headers: NO_CACHE_HEADERS }
+    )
   } catch (error: any) {
     console.error('Error tracking live site visit:', error)
-    return NextResponse.json({
-      success: true,
-      liveOnline: Math.max(activeUsers.size, 1),
-      todayVisitors: 26,
-      totalViews: 8532,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        liveOnline: Math.max(activeUsers.size, 1),
+        todayVisitors: 26,
+        totalViews: 8610,
+      },
+      { headers: NO_CACHE_HEADERS }
+    )
   }
 }

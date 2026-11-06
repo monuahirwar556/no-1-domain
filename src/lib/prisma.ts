@@ -21,7 +21,8 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Keep singleton PrismaClient across all environments to prevent SQLite connection pool exhaustion & file locks
+globalForPrisma.prisma = prisma
 
 // Auto-heal missing SQLite columns (e.g. videoUrl, targetUrl) so Hostinger / older DBs never crash
 if (typeof window === 'undefined' && !globalForPrisma.schemaHealed) {
