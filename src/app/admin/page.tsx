@@ -180,7 +180,7 @@ export default function AdminDashboardPage() {
     qrEnabled: true,
     xPixelId: '',
     xPixelToken: '',
-    totalSiteViews: 8610,
+    totalSiteViews: 11563,
     xConversionEventId: '',
   })
   const [savingSettings, setSavingSettings] = useState(false)
@@ -1454,9 +1454,9 @@ export default function AdminDashboardPage() {
                   </label>
                   <input
                     type="number"
-                    value={settings.totalSiteViews ?? 8610}
+                    value={settings.totalSiteViews ?? 11563}
                     onChange={e =>
-                      setSettings(prev => ({ ...prev, totalSiteViews: parseInt(e.target.value) || 8610 }))
+                      setSettings(prev => ({ ...prev, totalSiteViews: parseInt(e.target.value) || 11563 }))
                     }
                     className={`w-full border rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none transition-colors ${
                       isDark

@@ -39,7 +39,7 @@ export default function AdminSettingsPage() {
     razorpayKeyId: '',
     razorpayKeySecret: '',
     upiId: '',
-    totalSiteViews: 8610,
+    totalSiteViews: 11563,
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -401,8 +401,8 @@ export default function AdminSettingsPage() {
                 <div className="relative mt-2">
                   <input
                     type="number"
-                    value={settings.totalSiteViews ?? 8610}
-                    onChange={(e) => handleChange('totalSiteViews', parseInt(e.target.value) || 8610)}
+                    value={settings.totalSiteViews ?? 11563}
+                    onChange={(e) => handleChange('totalSiteViews', parseInt(e.target.value) || 11563)}
                     className="w-full px-4 py-2.5 border border-sky-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 font-bold text-lg"
                     min="1"
                   />

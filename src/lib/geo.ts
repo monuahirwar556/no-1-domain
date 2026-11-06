@@ -32,6 +32,33 @@ export const COUNTRIES_MAP: Record<string, CountryInfo> = {
   IT: { code: 'IT', name: 'Italy', flag: '🇮🇹' },
 }
 
+export interface CityDistribution {
+  city: string
+  region: string
+  country: string
+  countryCode: string
+  weight: number
+}
+
+export const TOP_GEOGRAPHIC_DISTRIBUTION: CityDistribution[] = [
+  { city: 'Mumbai', region: 'Maharashtra', country: 'India', countryCode: 'IN', weight: 0.24 },
+  { city: 'Delhi', region: 'Delhi NCR', country: 'India', countryCode: 'IN', weight: 0.17 },
+  { city: 'Bengaluru', region: 'Karnataka', country: 'India', countryCode: 'IN', weight: 0.15 },
+  { city: 'Hyderabad', region: 'Telangana', country: 'India', countryCode: 'IN', weight: 0.10 },
+  { city: 'Ahmedabad', region: 'Gujarat', country: 'India', countryCode: 'IN', weight: 0.08 },
+  { city: 'Pune', region: 'Maharashtra', country: 'India', countryCode: 'IN', weight: 0.07 },
+  { city: 'Gurugram', region: 'Delhi NCR', country: 'India', countryCode: 'IN', weight: 0.04 },
+  { city: 'Indore', region: 'Madhya Pradesh', country: 'India', countryCode: 'IN', weight: 0.04 },
+  { city: 'Jaipur', region: 'Rajasthan', country: 'India', countryCode: 'IN', weight: 0.03 },
+  { city: 'Noida', region: 'Delhi NCR', country: 'India', countryCode: 'IN', weight: 0.02 },
+  { city: 'Bhopal', region: 'Madhya Pradesh', country: 'India', countryCode: 'IN', weight: 0.02 },
+  { city: 'Kolkata', region: 'West Bengal', country: 'India', countryCode: 'IN', weight: 0.015 },
+  { city: 'Surat', region: 'Gujarat', country: 'India', countryCode: 'IN', weight: 0.01 },
+  { city: 'Lucknow', region: 'Uttar Pradesh', country: 'India', countryCode: 'IN', weight: 0.007 },
+  { city: 'Dubai', region: 'Dubai', country: 'United Arab Emirates', countryCode: 'AE', weight: 0.005 },
+  { city: 'San Francisco', region: 'California', country: 'United States', countryCode: 'US', weight: 0.003 },
+]
+
 export const WEIGHTED_PRESETS = [
   {
     code: 'IN',
@@ -70,30 +97,26 @@ export const WEIGHTED_PRESETS = [
 ]
 
 export function getRandomGeo() {
-  const indianCities = [
-    { city: 'Delhi', region: 'Delhi NCR' },
-    { city: 'Mumbai', region: 'Maharashtra' },
-    { city: 'Bengaluru', region: 'Karnataka' },
-    { city: 'Indore', region: 'Madhya Pradesh' },
-    { city: 'Bhopal', region: 'Madhya Pradesh' },
-    { city: 'Hyderabad', region: 'Telangana' },
-    { city: 'Pune', region: 'Maharashtra' },
-    { city: 'Ahmedabad', region: 'Gujarat' },
-    { city: 'Jaipur', region: 'Rajasthan' },
-    { city: 'Kolkata', region: 'West Bengal' },
-    { city: 'Lucknow', region: 'Uttar Pradesh' },
-    { city: 'Chandigarh', region: 'Punjab / Haryana' },
-    { city: 'Surat', region: 'Gujarat' },
-    { city: 'Noida', region: 'Uttar Pradesh' },
-    { city: 'Gurugram', region: 'Haryana' },
-  ]
-  const pick = indianCities[Math.floor(Math.random() * indianCities.length)]
+  const r = Math.random()
+  let cumulative = 0
+  for (const loc of TOP_GEOGRAPHIC_DISTRIBUTION) {
+    cumulative += loc.weight
+    if (r <= cumulative) {
+      return {
+        countryCode: loc.countryCode,
+        countryName: loc.country,
+        flag: COUNTRIES_MAP[loc.countryCode]?.flag || '🇮🇳',
+        region: loc.region,
+        city: loc.city,
+      }
+    }
+  }
   return {
     countryCode: 'IN',
     countryName: 'India',
     flag: '🇮🇳',
-    region: pick.region,
-    city: pick.city,
+    region: 'Maharashtra',
+    city: 'Mumbai',
   }
 }
 
@@ -203,32 +226,25 @@ export function buildAnalyticsBreakdown(totalClicks: number, visits: any[]) {
     }
   }
 
-  // Proportionally scale remaining clicks
+  // Proportionally scale remaining clicks across realistic Indian & global distribution
   const remaining = Math.max(0, total - recordedCount)
 
   if (remaining > 0) {
-    const totalWeight = WEIGHTED_PRESETS.reduce((sum, p) => sum + p.weight, 0)
-    for (const preset of WEIGHTED_PRESETS) {
-      const extra = Math.round((preset.weight / totalWeight) * remaining)
-      if (extra > 0) {
-        const countryName = COUNTRIES_MAP[preset.code]?.name || 'India'
-        countryCounts[countryName] = (countryCounts[countryName] || 0) + extra
+    for (const loc of TOP_GEOGRAPHIC_DISTRIBUTION) {
+      const extra = Math.max(1, Math.round(remaining * loc.weight))
+      countryCounts[loc.country] = (countryCounts[loc.country] || 0) + extra
 
-        // Regions
-        if (!regionCounts[preset.region]) {
-          regionCounts[preset.region] = { count: 0, country: countryName }
-        }
-        regionCounts[preset.region].count += extra
-
-        // Cities
-        for (let i = 0; i < Math.min(extra, preset.cities.length); i++) {
-          const cityName = preset.cities[i]
-          if (!cityCounts[cityName]) {
-            cityCounts[cityName] = { count: 0, country: countryName }
-          }
-          cityCounts[cityName].count += Math.max(1, Math.floor(extra / preset.cities.length))
-        }
+      // Regions
+      if (!regionCounts[loc.region]) {
+        regionCounts[loc.region] = { count: 0, country: loc.country }
       }
+      regionCounts[loc.region].count += extra
+
+      // Cities
+      if (!cityCounts[loc.city]) {
+        cityCounts[loc.city] = { count: 0, country: loc.country }
+      }
+      cityCounts[loc.city].count += extra
     }
 
     // Devices

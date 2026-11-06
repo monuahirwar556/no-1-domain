@@ -34,7 +34,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   xPixelId: process.env.X_PIXEL_ID || 'rgkb5',
   xPixelToken: process.env.X_PIXEL_TOKEN || '',
   xConversionEventId: process.env.X_CONVERSION_EVENT_ID || 'tw-rgkb5-purchase',
-  totalSiteViews: 8610,
+  totalSiteViews: 11563,
 }
 
 const SETTINGS_KEYS = {

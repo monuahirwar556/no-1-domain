@@ -21,8 +21,8 @@ async function main() {
 
   await prisma.setting.upsert({
     where: { key: 'total_site_views' },
-    update: { value: '8610' },
-    create: { key: 'total_site_views', value: '8610' },
+    update: { value: '11563' },
+    create: { key: 'total_site_views', value: '11563' },
   })
 
   await prisma.setting.upsert({

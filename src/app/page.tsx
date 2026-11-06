@@ -638,7 +638,7 @@ export default function HomePage() {
   const [todayVisits, setTodayVisits] = useState(0)
   const [liveOnlineCount, setLiveOnlineCount] = useState(1)
   const [todayVisitorsCount, setTodayVisitorsCount] = useState(26)
-  const [totalViewsCount, setTotalViewsCount] = useState(8610)
+  const [totalViewsCount, setTotalViewsCount] = useState(11563)
   const [visitorSessionId, setVisitorSessionId] = useState('')
 
   // Top 3 Podium Domains (Always persistent all-time #1, #2, #3 champions)

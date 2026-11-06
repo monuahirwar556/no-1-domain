@@ -67,9 +67,9 @@ export async function GET(
       prisma.setting.findUnique({ where: { key: 'total_site_views' } }),
     ])
 
-    const totalViewsConfigured = Math.max(parseInt(viewsSetting?.value || '0', 10), 8610)
-    // Scale analytics to show the full ~8,610+ total visitors volume across charts
-    const displayTotalViews = Math.max(totalViewsConfigured, listing.clicks, 8610)
+    const totalViewsConfigured = Math.max(parseInt(viewsSetting?.value || '0', 10), 11563)
+    // Scale analytics to show the full ~11,563+ total visitors volume across charts
+    const displayTotalViews = Math.max(totalViewsConfigured, listing.clicks, 11563)
 
     // Build geographic and device breakdowns matching Datafa / Plausible analytics
     const analytics = buildAnalyticsBreakdown(displayTotalViews, allVisits)

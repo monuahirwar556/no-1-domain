@@ -41,8 +41,8 @@ async function getAnalyticsData() {
     prisma.setting.findUnique({ where: { key: 'today_visitors_date' } }),
   ])
 
-  // Total views baseline starts at minimum 8610 and continuously accumulates forever (never resets back)
-  let totalViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 8610)
+  // Total views baseline starts at minimum 11563 and continuously accumulates forever (never resets back)
+  let totalViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 11563)
   let todayVisitors = parseInt(todayVisitorsSetting?.value || '0', 10)
 
   // Reset today's count if day changed, but keep totalViews growing!
@@ -91,7 +91,7 @@ export async function GET() {
         success: true,
         liveOnline: Math.max(activeUsers.size, 1),
         todayVisitors: 26,
-        totalViews: 8610,
+        totalViews: 11563,
       },
       { headers: NO_CACHE_HEADERS }
     )
@@ -135,9 +135,9 @@ export async function POST(request: NextRequest) {
 
     const todayStr = getTodayString()
 
-    // 1. Increment total site views starting from base 8610 (always increments on every visit)
+    // 1. Increment total site views starting from base 11563 (always increments on every visit)
     const viewsSetting = await prisma.setting.findUnique({ where: { key: 'total_site_views' } })
-    const baseViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 8610)
+    const baseViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 11563)
     const currentViews = baseViews + 1
 
     await prisma.setting.upsert({
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
         success: true,
         liveOnline: Math.max(activeUsers.size, 1),
         todayVisitors: 26,
-        totalViews: 8610,
+        totalViews: 11563,
       },
       { headers: NO_CACHE_HEADERS }
     )
