@@ -212,12 +212,9 @@ export async function ensureDatabaseReady() {
       }
 
       const visitorsSetting = await prisma.setting.findUnique({ where: { key: 'today_site_visitors' } })
-      const currentTodayVisitors = parseInt(visitorsSetting?.value || '0', 10)
-      if (!visitorsSetting || isNaN(currentTodayVisitors) || currentTodayVisitors < 26) {
-        await prisma.setting.upsert({
-          where: { key: 'today_site_visitors' },
-          update: { value: '26' },
-          create: { key: 'today_site_visitors', value: '26' },
+      if (!visitorsSetting) {
+        await prisma.setting.create({
+          data: { key: 'today_site_visitors', value: '0' },
         })
       }
     }

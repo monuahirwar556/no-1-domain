@@ -46,7 +46,7 @@ export async function GET(
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
 
-    const [todayVisits, lastHourVisits, allVisits, viewsSetting] = await Promise.all([
+    const [todayVisitsDb, lastHourVisits, allVisits, viewsSetting, todaySiteVisitorsSetting] = await Promise.all([
       prisma.visit.count({
         where: {
           listingId: id,
@@ -65,7 +65,10 @@ export async function GET(
         take: 1000,
       }),
       prisma.setting.findUnique({ where: { key: 'total_site_views' } }),
+      prisma.setting.findUnique({ where: { key: 'today_site_visitors' } }),
     ])
+
+    const todayVisits = Math.max(todayVisitsDb, parseInt(todaySiteVisitorsSetting?.value || '0', 10), 1)
 
     const totalViewsConfigured = Math.max(parseInt(viewsSetting?.value || '0', 10), 11563)
     // Scale analytics to show the full ~11,563+ total visitors volume across charts

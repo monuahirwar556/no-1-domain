@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { ensureDatabaseReady } from '@/lib/db-init'
 import { getActiveVisitorsData, recordVisitorHeartbeat } from '@/lib/live-tracker'
 import { detectGeoFromHeaders, detectDeviceAndBrowser } from '@/lib/geo'
+import { getLiveAnalyticsMetrics, recordNewVisitIncrement } from '@/lib/analytics-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,62 +25,21 @@ function cleanupOldSessions() {
   }
 }
 
-function getTodayString() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-}
-
-async function getAnalyticsData() {
-  await ensureDatabaseReady()
-  cleanupOldSessions()
-
-  const todayStr = getTodayString()
-
-  const [viewsSetting, todayVisitorsSetting, todayDateSetting] = await Promise.all([
-    prisma.setting.findUnique({ where: { key: 'total_site_views' } }),
-    prisma.setting.findUnique({ where: { key: 'today_site_visitors' } }),
-    prisma.setting.findUnique({ where: { key: 'today_visitors_date' } }),
-  ])
-
-  // Total views baseline starts at minimum 11563 and continuously accumulates forever (never resets back)
-  let totalViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 11563)
-  let todayVisitors = Math.max(parseInt(todayVisitorsSetting?.value || '26', 10), 26)
-
-  // Ensure today's date is tracked without wiping out previous visitors data
-  if (todayDateSetting?.value !== todayStr) {
-    await prisma.setting.upsert({
-      where: { key: 'today_visitors_date' },
-      update: { value: todayStr },
-      create: { key: 'today_visitors_date', value: todayStr },
-    })
-    await prisma.setting.upsert({
-      where: { key: 'today_site_visitors' },
-      update: { value: String(todayVisitors) },
-      create: { key: 'today_site_visitors', value: String(todayVisitors) },
-    })
-  }
-
-  // Live online users (sync with live-tracker which tracks both on-site and external browsing visitors)
-  const liveTrackerStats = getActiveVisitorsData()
-  const liveOnline = Math.max(liveTrackerStats.liveOnlineCount, activeUsers.size, 1)
-
-  return {
-    totalViews,
-    todayVisitors,
-    liveOnline,
-    todayStr,
-  }
-}
-
 export async function GET() {
   try {
-    const data = await getAnalyticsData()
+    await ensureDatabaseReady()
+    cleanupOldSessions()
+
+    const metrics = await getLiveAnalyticsMetrics()
+    const liveTrackerStats = getActiveVisitorsData()
+    const liveOnline = Math.max(liveTrackerStats.liveOnlineCount, activeUsers.size, 1)
+
     return NextResponse.json(
       {
         success: true,
-        liveOnline: data.liveOnline,
-        todayVisitors: data.todayVisitors,
-        totalViews: data.totalViews,
+        liveOnline,
+        todayVisitors: metrics.todayVisitors,
+        totalViews: metrics.totalViews,
       },
       { headers: NO_CACHE_HEADERS }
     )
@@ -89,7 +49,7 @@ export async function GET() {
       {
         success: true,
         liveOnline: Math.max(activeUsers.size, 1),
-        todayVisitors: 26,
+        todayVisitors: 0,
         totalViews: 11563,
       },
       { headers: NO_CACHE_HEADERS }
@@ -132,35 +92,10 @@ export async function POST(request: NextRequest) {
     // Register active user in live map
     activeUsers.set(identifier, Date.now())
 
-    const todayStr = getTodayString()
-
-    // 1. Increment total site views starting from base 11563 (always increments on every visit)
-    const viewsSetting = await prisma.setting.findUnique({ where: { key: 'total_site_views' } })
-    const baseViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 11563)
-    const currentViews = baseViews + 1
-
-    await prisma.setting.upsert({
-      where: { key: 'total_site_views' },
-      update: { value: String(currentViews) },
-      create: { key: 'total_site_views', value: String(currentViews) },
-    })
-
-    // 2. Increment today's visitors continuously (never wiping out previous visitors)
-    const todayVisitorsSetting = await prisma.setting.findUnique({ where: { key: 'today_site_visitors' } })
-    const prev = Math.max(parseInt(todayVisitorsSetting?.value || '26', 10), 26)
-    const todayVisitors = prev + 1
-
-    await prisma.setting.upsert({
-      where: { key: 'today_visitors_date' },
-      update: { value: todayStr },
-      create: { key: 'today_visitors_date', value: todayStr },
-    })
-
-    await prisma.setting.upsert({
-      where: { key: 'today_site_visitors' },
-      update: { value: String(todayVisitors) },
-      create: { key: 'today_site_visitors', value: String(todayVisitors) },
-    })
+    // 1 & 2. Record visit and increment total views and today's visitors (resets at Indian midnight only!)
+    const metrics = await recordNewVisitIncrement(isNewVisitor)
+    const currentViews = metrics.totalViews
+    const todayVisitors = metrics.todayVisitors
 
     // 3. Log real visitor into database if viewing a specific domain, and record live heartbeat
     const targetListingId = body.listingId || null
