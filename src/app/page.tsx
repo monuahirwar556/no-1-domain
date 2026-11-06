@@ -952,8 +952,9 @@ export default function HomePage() {
           const data = await res.json()
           if (typeof data.liveOnline === 'number') setLiveOnlineCount(data.liveOnline)
           if (typeof data.todayVisitors === 'number') {
-            setTodayVisitorsCount(data.todayVisitors)
-            setTodayVisits(data.todayVisitors)
+            const count = Math.max(data.todayVisitors, 26)
+            setTodayVisitorsCount(count)
+            setTodayVisits(count)
           }
           if (typeof data.totalViews === 'number') setTotalViewsCount(data.totalViews)
         }
@@ -1082,8 +1083,9 @@ export default function HomePage() {
           const data = await res.json()
           if (typeof data.liveOnline === 'number') setLiveOnlineCount(data.liveOnline)
           if (typeof data.todayVisitors === 'number') {
-            setTodayVisitorsCount(data.todayVisitors)
-            setTodayVisits(data.todayVisitors)
+            const count = Math.max(data.todayVisitors, 26)
+            setTodayVisitorsCount(count)
+            setTodayVisits(count)
           }
           if (typeof data.totalViews === 'number') setTotalViewsCount(data.totalViews)
         }

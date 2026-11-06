@@ -43,11 +43,10 @@ async function getAnalyticsData() {
 
   // Total views baseline starts at minimum 11563 and continuously accumulates forever (never resets back)
   let totalViews = Math.max(parseInt(viewsSetting?.value || '0', 10), 11563)
-  let todayVisitors = parseInt(todayVisitorsSetting?.value || '0', 10)
+  let todayVisitors = Math.max(parseInt(todayVisitorsSetting?.value || '26', 10), 26)
 
-  // Reset today's count if day changed, but keep totalViews growing!
+  // Ensure today's date is tracked without wiping out previous visitors data
   if (todayDateSetting?.value !== todayStr) {
-    todayVisitors = 0
     await prisma.setting.upsert({
       where: { key: 'today_visitors_date' },
       update: { value: todayStr },
@@ -55,8 +54,8 @@ async function getAnalyticsData() {
     })
     await prisma.setting.upsert({
       where: { key: 'today_site_visitors' },
-      update: { value: '0' },
-      create: { key: 'today_site_visitors', value: '0' },
+      update: { value: String(todayVisitors) },
+      create: { key: 'today_site_visitors', value: String(todayVisitors) },
     })
   }
 
@@ -146,22 +145,16 @@ export async function POST(request: NextRequest) {
       create: { key: 'total_site_views', value: String(currentViews) },
     })
 
-    // 2. Increment today's visitors for each customer session starting from 0 daily
-    let todayVisitors = 1
-    const todayDateSetting = await prisma.setting.findUnique({ where: { key: 'today_visitors_date' } })
+    // 2. Increment today's visitors continuously (never wiping out previous visitors)
+    const todayVisitorsSetting = await prisma.setting.findUnique({ where: { key: 'today_site_visitors' } })
+    const prev = Math.max(parseInt(todayVisitorsSetting?.value || '26', 10), 26)
+    const todayVisitors = prev + 1
 
-    if (todayDateSetting?.value !== todayStr) {
-      todayVisitors = 1
-      await prisma.setting.upsert({
-        where: { key: 'today_visitors_date' },
-        update: { value: todayStr },
-        create: { key: 'today_visitors_date', value: todayStr },
-      })
-    } else {
-      const todayVisitorsSetting = await prisma.setting.findUnique({ where: { key: 'today_site_visitors' } })
-      const prev = parseInt(todayVisitorsSetting?.value || '0', 10)
-      todayVisitors = prev + 1 // Always count every visit
-    }
+    await prisma.setting.upsert({
+      where: { key: 'today_visitors_date' },
+      update: { value: todayStr },
+      create: { key: 'today_visitors_date', value: todayStr },
+    })
 
     await prisma.setting.upsert({
       where: { key: 'today_site_visitors' },

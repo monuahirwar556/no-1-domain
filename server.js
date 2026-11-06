@@ -59,7 +59,7 @@ try {
     }
   }
 
-  // 2. Synchronize active database between root and prisma directory
+  // 2. Synchronize active database between root and prisma directory (preserve newest data)
   if (fs.existsSync(prismaDb) && !fs.existsSync(rootDb)) {
     fs.copyFileSync(prismaDb, rootDb)
     console.log('Synchronized dev.db to root directory')
@@ -68,10 +68,24 @@ try {
     if (!fs.existsSync(prismaDir)) fs.mkdirSync(prismaDir, { recursive: true })
     fs.copyFileSync(rootDb, prismaDb)
     console.log('Synchronized dev.db to prisma directory')
+  } else if (fs.existsSync(prismaDb) && fs.existsSync(rootDb)) {
+    const pStat = fs.statSync(prismaDb)
+    const rStat = fs.statSync(rootDb)
+    if (pStat.size > 0 && (rStat.size === 0 || pStat.mtimeMs > rStat.mtimeMs)) {
+      fs.copyFileSync(prismaDb, rootDb)
+      console.log('Synchronized newer prisma/dev.db to root dev.db')
+    } else if (rStat.size > 0 && (pStat.size === 0 || rStat.mtimeMs > pStat.mtimeMs)) {
+      fs.copyFileSync(rootDb, prismaDb)
+      console.log('Synchronized newer root dev.db to prisma/dev.db')
+    }
   }
 
   // 3. Auto-backup live active database to guarantee no data loss on redeployment
-  const activeDb = fs.existsSync(prismaDb) ? prismaDb : fs.existsSync(rootDb) ? rootDb : null
+  const activeDb = fs.existsSync(prismaDb) && fs.statSync(prismaDb).size > 0 
+    ? prismaDb 
+    : fs.existsSync(rootDb) && fs.statSync(rootDb).size > 0 
+      ? rootDb 
+      : null
   if (activeDb) {
     fs.copyFileSync(activeDb, path.join(backupDir, 'dev_db_backup_latest.db'))
     console.log('Automated live database backup secured in backups/dev_db_backup_latest.db')

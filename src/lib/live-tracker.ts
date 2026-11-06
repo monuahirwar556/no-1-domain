@@ -55,7 +55,7 @@ export interface DepartedVisitorSession {
   status: 'LEFT'
 }
 
-// Global persistent in-memory store (survives across hot reloads and Next.js requests)
+// Global persistent in-memory store (survives across requests, page navigation and server reloads)
 const globalForLiveTracker = global as unknown as {
   activeSessionsMap?: Map<string, ActiveVisitorSession>
   departedSessionsList?: DepartedVisitorSession[]
@@ -64,10 +64,8 @@ const globalForLiveTracker = global as unknown as {
 const activeSessions = globalForLiveTracker.activeSessionsMap || new Map<string, ActiveVisitorSession>()
 const departedSessions = globalForLiveTracker.departedSessionsList || []
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForLiveTracker.activeSessionsMap = activeSessions
-  globalForLiveTracker.departedSessionsList = departedSessions
-}
+globalForLiveTracker.activeSessionsMap = activeSessions
+globalForLiveTracker.departedSessionsList = departedSessions
 
 export function formatDuration(seconds: number): string {
   if (seconds < 5) return 'Just joined'
