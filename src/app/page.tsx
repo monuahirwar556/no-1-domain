@@ -944,15 +944,6 @@ export default function HomePage() {
       visitRecordedRef.current = true
 
       try {
-        const todayStr = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10)
-        const recordedKey = `no1_rec_${todayStr}`
-        const alreadyRecorded = typeof window !== 'undefined' && sessionStorage.getItem(recordedKey) === '1'
-        const isNewSession = !alreadyRecorded && isNew
-
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(recordedKey, '1')
-        }
-
         const res = await fetch(`/api/track-visit?t=${Date.now()}`, {
           method: 'POST',
           headers: {
@@ -962,7 +953,7 @@ export default function HomePage() {
           cache: 'no-store',
           body: JSON.stringify({
             sessionId,
-            isNewSession,
+            isNewSession: true,
           }),
         })
         if (res.ok) {

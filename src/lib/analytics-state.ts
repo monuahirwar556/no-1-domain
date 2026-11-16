@@ -163,31 +163,27 @@ export async function recordNewVisitIncrement(
     globalForSeenSessions.recentViewTimestamps?.clear()
   }
 
-  // Prevent double-counting if duplicate request arrives within 5 seconds (React StrictMode / double effect)
+  // Prevent double-counting if duplicate request arrives within 1 second (React StrictMode / double effect burst on single load)
   const now = Date.now()
   const recentTimestamps = globalForSeenSessions.recentViewTimestamps || new Map<string, number>()
   const lastTime = recentTimestamps.get(sessionKey) || 0
-  const isDuplicateCall = (now - lastTime) < 5000
+  const isDuplicateBurst = (now - lastTime) < 1000
   recentTimestamps.set(sessionKey, now)
 
-  // Determine if this is a genuinely new unique visitor today
-  const hasSeenSessionToday = globalForSeenSessions.todaySeenSessions?.has(sessionKey) || false
-  const shouldIncrementVisitor = isNewSession && !hasSeenSessionToday && !isDuplicateCall
+  // Every single page load and every refresh increments both today's visitors and total views by +1
+  // Only duplicate bursts within 1 second on the same render are filtered out so 1 refresh = exactly 1 count!
+  const shouldIncrement = !isDuplicateBurst
 
-  if (shouldIncrementVisitor) {
-    globalForSeenSessions.todaySeenSessions?.add(sessionKey)
-  }
-
-  const newTodayVisitors = shouldIncrementVisitor 
+  const newTodayVisitors = shouldIncrement 
     ? current.todayVisitors + 1 
     : current.todayVisitors
 
-  const newTotalViews = !isDuplicateCall 
+  const newTotalViews = shouldIncrement 
     ? current.totalViews + 1 
     : current.totalViews
 
   // Only write to DB if metrics actually changed
-  if (shouldIncrementVisitor || !isDuplicateCall) {
+  if (shouldIncrement) {
     await Promise.all([
       prisma.setting.upsert({
         where: { key: 'total_site_views' },
