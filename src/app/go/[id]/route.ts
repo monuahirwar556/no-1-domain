@@ -80,17 +80,6 @@ export async function GET(
       ]).catch((err) => console.error('Error logging visit:', err))
     }
 
-    // Increment today's visitors count in settings on every visit
-    try {
-      const todayVisitorsSetting = await prisma.setting.findUnique({ where: { key: 'today_site_visitors' } })
-      const prevVis = parseInt(todayVisitorsSetting?.value || '0', 10)
-      await prisma.setting.upsert({
-        where: { key: 'today_site_visitors' },
-        update: { value: String(prevVis + 1) },
-        create: { key: 'today_site_visitors', value: String(prevVis + 1) },
-      })
-    } catch (e) {}
-
     // Use client's session ID if passed, or create a unique session ID
     const clientSid = request.nextUrl.searchParams.get('sid')
     const visitorSessionId = clientSid || `visit_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`

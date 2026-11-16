@@ -9,15 +9,27 @@ export interface DailyAnalyticsState {
   lastUpdated: string
 }
 
-// Always compute date according to Indian Standard Time (Asia/Kolkata)
-// This ensures midnight (12:00 AM) in India is the exact reset point.
+// Global persistent in-memory store for deduplicating visitor sessions across requests
+const globalForSeenSessions = global as unknown as {
+  todaySeenSessions?: Set<string>
+  todaySessionsDate?: string
+  recentViewTimestamps?: Map<string, number>
+}
+
+if (!globalForSeenSessions.todaySeenSessions) {
+  globalForSeenSessions.todaySeenSessions = new Set<string>()
+  globalForSeenSessions.todaySessionsDate = ''
+  globalForSeenSessions.recentViewTimestamps = new Map<string, number>()
+}
+
+/**
+ * Returns exact Indian Standard Time (UTC + 5:30) date as YYYY-MM-DD.
+ * Strictly cycles once every 24 hours at 12:00 AM midnight in India.
+ * Immune to server host timezone or locale differences.
+ */
 export function getISTDateString(): string {
-  try {
-    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
-  } catch {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  }
+  const istDate = new Date(Date.now() + 5.5 * 60 * 60 * 1000)
+  return istDate.toISOString().slice(0, 10)
 }
 
 const STATE_FILE_PATH = path.join(process.cwd(), 'backups', 'daily_analytics_state.json')
@@ -46,8 +58,8 @@ function saveStateToFile(state: DailyAnalyticsState): void {
 
 /**
  * Retrieves the current analytics metrics.
- * - If Indian calendar date changed (midnight 12:00 AM IST): resets todayVisitors to 0 for the new day.
- * - If mid-day update or server restart: retains today's customer count intact (never resets mid-day!).
+ * - 24-HOUR RESET: Resets today's visitor count to 0 ONLY ONCE every 24 hours at Indian midnight (12:00 AM IST).
+ * - NEVER resets every 6 hours or on server restarts / process recycling.
  */
 export async function getLiveAnalyticsMetrics() {
   const todayIST = getISTDateString()
@@ -59,7 +71,7 @@ export async function getLiveAnalyticsMetrics() {
     prisma.setting.findUnique({ where: { key: 'today_visitors_date' } }).catch(() => null),
   ])
 
-  // 2. Fetch from persistent file backup (survives code updates / restarts)
+  // 2. Fetch from persistent file backup (survives process recycling)
   const fileState = readStateFromFile()
 
   // Total views baseline (minimum 11563, continues accumulating forever)
@@ -67,15 +79,19 @@ export async function getLiveAnalyticsMetrics() {
   const fileViews = fileState?.totalViews || 0
   const totalViews = Math.max(dbViews, fileViews, 11563)
 
-  const dbDate = todayDateSetting?.value
-  const fileDate = fileState?.date
-  const effectiveSavedDate = dbDate || fileDate || todayIST
-
+  const savedDate = todayDateSetting?.value || (fileState?.date === todayIST ? todayIST : null)
   let todayVisitors = 0
 
-  if (effectiveSavedDate !== todayIST) {
-    // Raat ke 12:00 AM midnight (calendar date change): reset to 0 for the brand new day
+  // Check if Indian midnight (12:00 AM IST) has arrived for a new 24-hour day
+  if (savedDate && savedDate !== todayIST) {
+    // A FULL 24 HOURS HAS PASSED (Indian Midnight 12:00 AM reached)
+    // Reset to 0 for the brand new day
     todayVisitors = 0
+
+    // Clear deduplication set for the new day
+    globalForSeenSessions.todaySeenSessions?.clear()
+    globalForSeenSessions.todaySessionsDate = todayIST
+    globalForSeenSessions.recentViewTimestamps?.clear()
 
     await Promise.all([
       prisma.setting.upsert({
@@ -97,14 +113,14 @@ export async function getLiveAnalyticsMetrics() {
       lastUpdated: new Date().toISOString(),
     })
   } else {
-    // Same day (mid-day update, code deploy or server restart):
-    // RETAIN whatever visitors arrived today (never reset to 0 mid-day!)
+    // STILL THE SAME 24-HOUR DAY (or fresh server startup):
+    // RETAIN today's customer count intact (never reset to 0 mid-day or every 6 hours!)
     const dbTodayVisitors = parseInt(todayVisitorsSetting?.value || '0', 10)
     const fileTodayVisitors = fileState && fileState.date === todayIST ? fileState.todayVisitors : 0
 
     todayVisitors = Math.max(dbTodayVisitors, fileTodayVisitors)
 
-    // Ensure database has todayIST date saved
+    // Ensure database date matches today's IST date without resetting count
     if (todayDateSetting?.value !== todayIST) {
       await prisma.setting.upsert({
         where: { key: 'today_visitors_date' },
@@ -122,44 +138,85 @@ export async function getLiveAnalyticsMetrics() {
 }
 
 /**
- * Increments visitor count when a user arrives.
- * - Always increments total views (+1).
- * - Increments today's visitors (+1) for the current day.
- * - Saves to both SQLite and persistent state file.
+ * Records a visitor and increments counters with strict session deduplication:
+ * - 1 visitor is counted as EXACTLY 1 (never counted twice for multiple requests or double-mount).
+ * - Total views increments (+1).
+ * - Debounces rapid duplicate calls within 5 seconds.
  */
-export async function recordNewVisitIncrement(isNewSession: boolean = true) {
+export async function recordNewVisitIncrement(
+  sessionId?: string,
+  clientIp?: string,
+  isNewSession: boolean = true
+) {
   const current = await getLiveAnalyticsMetrics()
-  const newTotalViews = current.totalViews + 1
-  const newTodayVisitors = isNewSession ? current.todayVisitors + 1 : current.todayVisitors
+  const todayIST = current.todayIST
 
-  await Promise.all([
-    prisma.setting.upsert({
-      where: { key: 'total_site_views' },
-      update: { value: String(newTotalViews) },
-      create: { key: 'total_site_views', value: String(newTotalViews) },
-    }).catch(() => {}),
-    prisma.setting.upsert({
-      where: { key: 'today_site_visitors' },
-      update: { value: String(newTodayVisitors) },
-      create: { key: 'today_site_visitors', value: String(newTodayVisitors) },
-    }).catch(() => {}),
-    prisma.setting.upsert({
-      where: { key: 'today_visitors_date' },
-      update: { value: current.todayIST },
-      create: { key: 'today_visitors_date', value: current.todayIST },
-    }).catch(() => {}),
-  ])
+  // Deduplication Key (unique to each visitor's browser session)
+  const sessionKey = (sessionId && sessionId !== 'undefined') 
+    ? sessionId 
+    : (clientIp && clientIp !== 'client' ? clientIp : `anon_${Date.now()}`)
 
-  saveStateToFile({
-    date: current.todayIST,
-    todayVisitors: newTodayVisitors,
-    totalViews: newTotalViews,
-    lastUpdated: new Date().toISOString(),
-  })
+  // Reset in-memory session set if date changed
+  if (globalForSeenSessions.todaySessionsDate !== todayIST) {
+    globalForSeenSessions.todaySeenSessions?.clear()
+    globalForSeenSessions.todaySessionsDate = todayIST
+    globalForSeenSessions.recentViewTimestamps?.clear()
+  }
+
+  // Prevent double-counting if duplicate request arrives within 5 seconds (React StrictMode / double effect)
+  const now = Date.now()
+  const recentTimestamps = globalForSeenSessions.recentViewTimestamps || new Map<string, number>()
+  const lastTime = recentTimestamps.get(sessionKey) || 0
+  const isDuplicateCall = (now - lastTime) < 5000
+  recentTimestamps.set(sessionKey, now)
+
+  // Determine if this is a genuinely new unique visitor today
+  const hasSeenSessionToday = globalForSeenSessions.todaySeenSessions?.has(sessionKey) || false
+  const shouldIncrementVisitor = isNewSession && !hasSeenSessionToday && !isDuplicateCall
+
+  if (shouldIncrementVisitor) {
+    globalForSeenSessions.todaySeenSessions?.add(sessionKey)
+  }
+
+  const newTodayVisitors = shouldIncrementVisitor 
+    ? current.todayVisitors + 1 
+    : current.todayVisitors
+
+  const newTotalViews = !isDuplicateCall 
+    ? current.totalViews + 1 
+    : current.totalViews
+
+  // Only write to DB if metrics actually changed
+  if (shouldIncrementVisitor || !isDuplicateCall) {
+    await Promise.all([
+      prisma.setting.upsert({
+        where: { key: 'total_site_views' },
+        update: { value: String(newTotalViews) },
+        create: { key: 'total_site_views', value: String(newTotalViews) },
+      }).catch(() => {}),
+      prisma.setting.upsert({
+        where: { key: 'today_site_visitors' },
+        update: { value: String(newTodayVisitors) },
+        create: { key: 'today_site_visitors', value: String(newTodayVisitors) },
+      }).catch(() => {}),
+      prisma.setting.upsert({
+        where: { key: 'today_visitors_date' },
+        update: { value: todayIST },
+        create: { key: 'today_visitors_date', value: todayIST },
+      }).catch(() => {}),
+    ])
+
+    saveStateToFile({
+      date: todayIST,
+      todayVisitors: newTodayVisitors,
+      totalViews: newTotalViews,
+      lastUpdated: new Date().toISOString(),
+    })
+  }
 
   return {
     totalViews: newTotalViews,
     todayVisitors: newTodayVisitors,
-    todayIST: current.todayIST,
+    todayIST,
   }
 }

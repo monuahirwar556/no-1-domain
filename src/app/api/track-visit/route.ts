@@ -92,8 +92,8 @@ export async function POST(request: NextRequest) {
     // Register active user in live map
     activeUsers.set(identifier, Date.now())
 
-    // 1 & 2. Record visit and increment total views and today's visitors (resets at Indian midnight only!)
-    const metrics = await recordNewVisitIncrement(isNewVisitor)
+    // 1 & 2. Record visit and increment total views and today's visitors (deduplicated: 1 visitor = 1 count, resets strictly once every 24 hours at Indian midnight!)
+    const metrics = await recordNewVisitIncrement(clientSessionId, ip, isNewVisitor)
     const currentViews = metrics.totalViews
     const todayVisitors = metrics.todayVisitors
 

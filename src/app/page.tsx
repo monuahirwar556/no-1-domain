@@ -640,6 +640,7 @@ export default function HomePage() {
   const [todayVisitorsCount, setTodayVisitorsCount] = useState(26)
   const [totalViewsCount, setTotalViewsCount] = useState(11563)
   const [visitorSessionId, setVisitorSessionId] = useState('')
+  const visitRecordedRef = useRef(false)
 
   // Top 3 Podium Domains (Always persistent all-time #1, #2, #3 champions)
   const [allTop3Domains, setAllTop3Domains] = useState<DomainItem[]>([])
@@ -736,6 +737,10 @@ export default function HomePage() {
   // Live Visitor Tracking State (DataFast Dashboard Suite)
   const [trackingModalOpen, setTrackingModalOpen] = useState(false)
   const [selectedTrackingDomainId, setSelectedTrackingDomainId] = useState<string | null>(null)
+  const activeCategoryRef = useRef(activeCategory)
+  activeCategoryRef.current = activeCategory
+  const selectedTrackingDomainIdRef = useRef(selectedTrackingDomainId)
+  selectedTrackingDomainIdRef.current = selectedTrackingDomainId
   const [trackingDetails, setTrackingDetails] = useState<any>(null)
   const [trackingLoading, setTrackingLoading] = useState(false)
   const [dataFastTab, setDataFastTab] = useState<'all' | 'live_users' | 'chart' | 'paths' | 'locations' | 'sources' | 'systems' | 'events' | 'stream'>('all')
@@ -935,7 +940,19 @@ export default function HomePage() {
     }
 
     const recordVisit = async () => {
+      if (visitRecordedRef.current) return
+      visitRecordedRef.current = true
+
       try {
+        const todayStr = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10)
+        const recordedKey = `no1_rec_${todayStr}`
+        const alreadyRecorded = typeof window !== 'undefined' && sessionStorage.getItem(recordedKey) === '1'
+        const isNewSession = !alreadyRecorded && isNew
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(recordedKey, '1')
+        }
+
         const res = await fetch(`/api/track-visit?t=${Date.now()}`, {
           method: 'POST',
           headers: {
@@ -945,7 +962,7 @@ export default function HomePage() {
           cache: 'no-store',
           body: JSON.stringify({
             sessionId,
-            isNewSession: true,
+            isNewSession,
           }),
         })
         if (res.ok) {
@@ -1005,12 +1022,12 @@ export default function HomePage() {
             linkTitle: isExternal ? (activeTargetTitle || activeTargetDomain) : 'no1domain.in',
             domainName: isExternal ? activeTargetDomain : 'no1domain.in',
             targetDomain: isExternal ? activeTargetDomain : 'no1domain.in',
-            domainId: isExternal ? (selectedTrackingDomainId || undefined) : undefined,
+            domainId: isExternal ? (selectedTrackingDomainIdRef.current || undefined) : undefined,
             targetStartedAt: isExternal ? activeTargetTime : undefined,
             isExternal,
             lastAction: isExternal
               ? `Active on ${activeTargetDomain}`
-              : (activeCategory ? `Browsing category: ${activeCategory}` : 'Browsing no1domain.in'),
+              : (activeCategoryRef.current ? `Browsing category: ${activeCategoryRef.current}` : 'Browsing no1domain.in'),
             ...extraPayload,
           }),
         }).catch(() => {})
@@ -1097,7 +1114,7 @@ export default function HomePage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       document.removeEventListener('click', handleGlobalClick, { capture: true })
     }
-  }, [selectedTrackingDomainId, activeCategory])
+  }, [])
 
   // Load all-time top 3 on initial mount
   useEffect(() => {
